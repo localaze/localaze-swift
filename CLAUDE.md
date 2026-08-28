@@ -6,18 +6,28 @@ Read `../CLAUDE.md` for the rules that govern every SDK package, and `../contrac
 
 ## Baselines
 
-**Not yet confirmed. Do not guess, and do not write `Package.swift` until these are filled in.**
+**Chosen, not confirmed.** The app teams were asked and delegated the decision, so these are recorded with their reasoning to make an override cheap.
 
-| | |
-|---|---|
-| Swift tools version | `_to be confirmed_` |
-| Minimum iOS | `_to be confirmed_` |
-| Other platforms (macOS, watchOS) | `_to be confirmed_` |
-| Distribution | Local path dependency for now. SPM from an internal source is a later ticket |
+| | | Why |
+|---|---|---|
+| Swift tools | **5.9** | Keeps the package in Swift 5 language mode, so an app on either mode consumes it without strict-concurrency friction. Nothing here needs a 6.0-only feature. Verified compiling on Swift 6.3.3 |
+| Minimum iOS | **16** | Roughly four years old in 2026, and it brings `Duration`. `async`/`await` needs only 13, so the updater API is safe well below this |
+| macOS | 13 | So `swift test` runs on a build machine rather than a simulator. Not a shipping target |
+| watchOS / tvOS | Out of scope | |
+| Dependencies | **None** | |
+| Distribution | Local path dependency. SPM from the internal source is a later ticket | |
 
-`LZ-56` names this explicitly: *"Confirm the minimum iOS version with the app teams before choosing between a build plugin and a checked-in generated file."* The answer changes more than a number — it decides whether generation runs as an SPM build plugin or is checked in.
+`LZ-56` asks for minimum iOS to be confirmed before choosing between an SPM build plugin and a checked-in generated file. **That choice is still open** — it belongs with the generator work in Phase 4, not with this package, and iOS 16 does not force either answer.
 
-Minimum iOS also decides whether `async`/`await` is available unconditionally, which shapes the whole updater API. Settle it before writing the transport.
+### Foundation is kept at arm's length
+
+Three places where the obvious Foundation answer is the wrong one, all for the same reason — `LZ-54` guarantees the three platforms render identically, and Foundation's rules are its own:
+
+- **Dates** use a hand-built formatter, not `ISO8601DateFormatter`, whose output depends on option flags a future Foundation could change.
+- **Plurals** compile into generated Swift. No `.stringsdict`, which `LZ-56` rejects explicitly.
+- **No `NSLocalizedString`** anywhere.
+
+A purity test enforces all three.
 
 ## Layout
 

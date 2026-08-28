@@ -4,17 +4,18 @@ The Localaze runtime for Swift and iOS. `LZ-56`.
 
 Generated code gives an app typed accessors. This package gives it everything else: fetching a newer catalog, caching it, deciding whether it is safe to apply, and rendering a message from it.
 
-> **Not yet implemented.** The contract and fixtures are in place; the runtime is blocked on the baselines below. See `../README.md` for repository-wide status.
+> **Implemented.** 67 tests pass against the shared fixture project. Run them with `swift test`.
 
-## Blocked on
+## Baselines
 
-`Package.swift` is not written until these are confirmed with the iOS team:
+Chosen rather than confirmed — the app teams delegated the call. Reasoning is in `CLAUDE.md`, and each is a one-line change.
 
-- Swift tools version
-- **Minimum iOS.** `LZ-56` requires confirming this before choosing between an SPM build plugin and a checked-in generated file, and it also decides whether `async`/`await` is available unconditionally — which shapes the updater API
-- Whether macOS or watchOS are in scope
+- `swift-tools-version: 5.9`, so the package stays in Swift 5 language mode and either kind of app consumes it cleanly
+- **Minimum iOS 16** — about four years old in 2026, and it brings `Duration`
+- macOS 13 as well, so `swift test` runs on a build machine rather than a simulator
+- **Zero dependencies**
 
-They are recorded as `_to be confirmed_` in `CLAUDE.md`.
+Still open, and it belongs with the generator work rather than here: whether generation runs as an SPM build plugin or is checked in (`LZ-56`).
 
 ## Intended use
 
