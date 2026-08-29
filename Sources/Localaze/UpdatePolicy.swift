@@ -10,7 +10,10 @@ import Foundation
 /// defines major as signature-breaking by construction, so its messages no
 /// longer take the parameters generated accessors pass. Taking one would not be
 /// a stale screen, it would be a wrong one.
-public enum LocalazeUpdatePolicy: Sendable, Equatable {
+/// `Hashable` because an app puts this in a SwiftUI `Picker`, which requires
+/// it. Free here — every associated value is a `String` — and the demo app
+/// found it missing straight away.
+public enum LocalazeUpdatePolicy: Sendable, Equatable, Hashable {
     /// Never fetch. The app ships with what it was built with.
     case none
 
