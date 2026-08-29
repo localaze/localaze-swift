@@ -50,7 +50,10 @@ final class PolicyTests: XCTestCase {
         XCTAssertFalse(accepts("1.1.0", "1.0.1", .minorAndPatch))
     }
 
-    func testSameVersionRefused() {
+    func testSameVersionIsUpToDate() {
+        // accepts() still says no — there is nothing to take. The updater turns
+        // that into upToDate rather than refusedByPolicy, which FetchTests
+        // covers.
         XCTAssertFalse(accepts("1.0.0", "1.0.0", .minorAndPatch))
     }
 

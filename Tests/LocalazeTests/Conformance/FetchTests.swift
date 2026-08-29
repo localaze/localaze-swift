@@ -64,6 +64,33 @@ final class FetchTests: XCTestCase {
         XCTAssertEqual(transport.headerValue("If-None-Match"), "\"1.0.1-ab\"")
     }
 
+    func testVersionEndpointReportsItsStatus() async {
+        // Found by the example app, not by a unit test. Without the status a
+        // wrong API key and a quiet network produce the same diagnostic.
+        let reported = Reported()
+        let transport = FakeTransport(["/version": LocalazeResponse(status: 401)])
+
+        let status = await runtimeWith(transport, reported: reported).update()
+
+        XCTAssertEqual(status.outcome, .failed)
+        XCTAssertTrue(
+            reported.mentions("401"),
+            "a 401 must be distinguishable from a quiet network")
+    }
+
+    func testSameVersionIsUpToDate() async {
+        // Nothing was refused: the server and the app agree. This is the most
+        // common outcome in production, so its wording matters most.
+        let reported = Reported()
+        let transport = FakeTransport(["/version": ok(versionBody("1.0.0"))])
+
+        let status = await runtimeWith(transport, reported: reported).update()
+
+        XCTAssertEqual(status.outcome, .upToDate)
+        XCTAssertEqual(status.version, "1.0.0")
+        XCTAssertTrue(reported.isEmpty, "\(reported.messages)")
+    }
+
     func testNotModifiedKeepsContent() async {
         let reported = Reported()
         let transport = FakeTransport([

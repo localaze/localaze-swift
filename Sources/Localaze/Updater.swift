@@ -38,12 +38,20 @@ final class Updater {
     ///
     /// Cheap enough for every launch: it does not download the translations.
     func currentVersion() async -> String? {
-        guard let response = await get("/api/v1/read/version"), response.isOk,
-              let body = response.body
-        else { return nil }
+        let path = "/api/v1/read/version"
+        guard let response = await get(path) else { return nil }
+
+        guard response.isOk, let body = response.body else {
+            // The status has to reach the diagnostic here, not only on the
+            // translations path. A 401 is a wrong key, and without this it is
+            // indistinguishable from a quiet network to whoever reads the log —
+            // which is the exact failure the no-throw rule trades away.
+            diagnostics.report("\(path) returned \(response.status)")
+            return nil
+        }
 
         guard let version = LocalazeCatalog.stringField(body, "version") else {
-            diagnostics.report("/api/v1/read/version carried no version")
+            diagnostics.report("\(path) carried no version")
             return nil
         }
         return version
@@ -77,6 +85,14 @@ final class Updater {
 
         guard let available = offered else {
             return (nil, failed("The published version could not be read"))
+        }
+
+        // Nothing new is not a refusal. Reporting it as one reads, in a log and
+        // in a UI, as though the policy blocked something — when in fact the
+        // server and the app already agree.
+        if available == held {
+            return (nil, LocalazeFetchStatus(
+                .upToDate, detail: "already on \(held)", version: held))
         }
 
         guard LocalazeVersion.accepts(
