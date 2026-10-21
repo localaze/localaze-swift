@@ -44,9 +44,19 @@ It offers `1.0.2`, a patch. The policy accepts it. Every key is present. `inbox.
 
 The SDK refuses the whole catalog and the Diagnostics section says why. A name-only signature check, which is what the first implementation did, takes it.
 
-## `Localaze.g.swift` is written by hand
+## `Localaze.g.swift` is generated
 
-The generator does not exist yet. This file is the reference for what Phase 4 must emit: typed accessors, compiled plural rules, a signature with names **and** types, and a compiled-in catalog as the floor.
+It is the real output of the Swift generator for the fixture release. `localaze/` holds the catalogs it wrote alongside; a real app adds that folder to its target for `LocalazeFileStorage`, while this demo configures no storage and renders from the compiled-in copies.
+
+Regenerate from the stub server, exactly as an app would from production:
+
+```
+swift run --package-path ../../localaze-swift localaze-generate \
+    --key demo-key --version 1.0.0 --base-url http://localhost:8787 \
+    --out Sources/LocalazeDemo/Localaze.g.swift --assets localaze
+```
+
+Or offline with `--manifest ../../contract/fixtures/manifest.json --catalogs ../../contract/fixtures/catalogs` in place of the key and URL. Both produce the same file, byte for byte.
 
 Two things it demonstrates that are easy to miss:
 
