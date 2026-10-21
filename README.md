@@ -4,37 +4,65 @@ The Localaze runtime for Swift and iOS. `LZ-56`.
 
 Generated code gives an app typed accessors. This package gives it everything else: fetching a newer catalog, caching it, deciding whether it is safe to apply, and rendering a message from it.
 
-> **Implemented.** 67 tests pass against the shared fixture project. Run them with `swift test`.
+It also ships the generator that writes those accessors from a published release.
+
+> **Implemented.** 92 tests pass against the shared fixture project. Run them with `swift test`.
 
 ## Baselines
 
 Chosen rather than confirmed — the app teams delegated the call. Reasoning is in `CLAUDE.md`, and each is a one-line change.
 
-- `swift-tools-version: 5.9`, so the package stays in Swift 5 language mode and either kind of app consumes it cleanly
+- `swift-tools-version: 5.9`, so the package stays in Swift 5 language mode and either kind of app consumes it cleanly. Generated code also compiles cleanly in Swift 6 language mode
 - **Minimum iOS 16** — about four years old in 2026, and it brings `Duration`
 - macOS 13 as well, so `swift test` runs on a build machine rather than a simulator
 - **Zero dependencies**
 
-Still open, and it belongs with the generator work rather than here: whether generation runs as an SPM build plugin or is checked in (`LZ-56`).
+## Generating
 
-## Intended use
+Run from a checkout of this package, or from any package that depends on it, with an integration key from the project's settings:
+
+```
+swift run localaze-generate --key $LOCALAZE_KEY --version 1.4.0 \
+    --out MyApp/Localaze.g.swift --assets MyApp/localaze
+```
+
+That writes two things:
+
+| Output | Default | Contents |
+|---|---|---|
+| `--out` | `Localaze.g.swift` | The `Localaze` struct: typed accessors, the signature, plural rules, and a compiled-in copy of every catalog |
+| `--assets` | `localaze/` | One `<language>.json` per language. Add the folder to the app target as a folder reference, which is where `LocalazeFileStorage` looks |
+
+**The generated file is checked in, not produced by a build plugin.** A build plugin cannot reach the network without asking for permission on every build, and a build that silently fetches is a build that is not reproducible. Generation is deterministic, so regenerating unchanged content produces no diff. This settles the choice `LZ-56` left open.
+
+**Pin `--version` in a build.** Without it the generator takes the environment's live release.
+
+Generation fails, naming every problem at once, when a translation is missing, a catalog is from a different release, or a key cannot become a Swift name. `--allow-gaps` turns missing translations into warnings for early development. `--manifest` and `--catalogs` replay saved server responses for a build with no network.
+
+The full specification is `../contract/generator-contract.md`.
+
+## Using it
 
 ```swift
-let localaze = Localaze(locale: "ru", config: LocalazeConfig(apiKey: "..."))
+let t = Localaze.forLocale("ru", config: LocalazeConfig(
+    apiKey: "...",
+    storage: LocalazeFileStorage()))
 
-localaze.authSignOut                    // "Выход"
-localaze.authWelcome(name: "Аян")       // "Добро пожаловать, Аян"
-localaze.inboxUnread(count: 11)         // "У вас 11 сообщений"
-localaze.inboxUnread()                  // compile error — a plural needs its count
-localaze.inboxUnread(count: "eleven")   // compile error — count is numeric
+t.authSignOut                    // "Выход"
+t.authWelcome(name: "Аян")       // "Добро пожаловать, Аян"
+t.inboxUnread(count: 11)         // "У вас 11 сообщений"
+t.inboxUnread()                  // compile error — a plural needs its count
+t.inboxUnread(count: "eleven")   // compile error — count is numeric
 ```
 
 The last two lines are the point of the whole SDK. A missing or wrongly typed translation argument is caught by the compiler, not by a user reading a broken screen.
 
+A `NUMBER` parameter takes `some LocalazeNumber`, which every standard integer and floating-point type adopts, along with `Decimal`. Pass an `Int` or a `Double` without converting it.
+
 Updating is explicit and never blocks a screen:
 
 ```swift
-await localaze.update()   // fetches, checks, applies per policy. Never throws.
+await t.runtime.update()   // fetches, checks, applies per policy. Never throws.
 ```
 
 ## Configuration
@@ -45,16 +73,17 @@ Every option has a default except the key.
 LocalazeConfig(
     apiKey: "...",                       // required; carries project and environment
     baseUrl: "https://localize.sharpy.dev",
-    assetPath: "localaze",               // a bundle resource
-    cacheDirectory: nil,                 // defaults to Application Support
     policy: .minorAndPatch,
     timeout: 10,
     applyImmediately: false,
-    onDiagnostic: { message, error in print(message) }
+    dateFormatter: localazeIsoUtc,
+    onDiagnostic: { message, error in print(message) },
+    transport: nil,                      // LocalazeUrlSessionTransport
+    storage: nil                         // LocalazeNoStorage: updates last for the session
 )
 ```
 
-Unlike the Dart package, persistence is on by default — Swift can find a writable directory without an extra dependency. Behaviour given the same configuration is identical across platforms; only the default differs.
+`LocalazeFileStorage()` reads bundled catalogs from the `localaze` folder of the main bundle and caches updates in Application Support, so updates survive a restart.
 
 **Pass `onDiagnostic` during integration.** Nothing here throws, which means a wrong API key and a quiet network look identical from the outside.
 

@@ -1,6 +1,6 @@
 # localaze-swift
 
-The Swift/iOS runtime package. `LZ-56`.
+The Swift/iOS runtime package, and its generator. `LZ-56`.
 
 Read `../CLAUDE.md` for the rules that govern every SDK package, and `../contract/runtime-contract.md` for the behaviour this one implements. This file records only what is specific to Swift.
 
@@ -17,7 +17,7 @@ Read `../CLAUDE.md` for the rules that govern every SDK package, and `../contrac
 | Dependencies | **None** | |
 | Distribution | Local path dependency. SPM from the internal source is a later ticket | |
 
-`LZ-56` asks for minimum iOS to be confirmed before choosing between an SPM build plugin and a checked-in generated file. **That choice is still open** — it belongs with the generator work in Phase 4, not with this package, and iOS 16 does not force either answer.
+`LZ-56` asked for a choice between an SPM build plugin and a checked-in generated file. **It is a checked-in file**, written by the `localaze-generate` command. A build plugin cannot reach the network without a permission prompt on every build, and a build that fetches is not reproducible. iOS 16 did not bear on the choice.
 
 ### Foundation is kept at arm's length
 
@@ -35,8 +35,10 @@ A purity test enforces all three.
 localaze-swift/
 ├── CLAUDE.md
 ├── README.md
-├── Package.swift                  blocked on Baselines
+├── Package.swift
 ├── Sources/
+│   ├── LocalazeGenerator/               Plan.swift decides and checks, SwiftEmitter.swift spells
+│   ├── localaze-generate/               the command: network and files, nothing else
 │   └── Localaze/
 │       ├── Localaze.swift               the public entry point
 │       ├── LocalazeConfig.swift
@@ -49,11 +51,14 @@ localaze-swift/
 │       ├── Diagnostics.swift
 │       ├── Transport.swift              the protocol
 │       ├── Storage.swift                the protocol
-│       └── Platform/                    default implementations, the only place URLSession appears
+│       ├── LocalazeNumber.swift         what a NUMBER parameter accepts
+│       └── Platform/                    default implementations, the only place URLSession appears in the runtime
 └── Tests/
-    └── LocalazeTests/
-        ├── Conformance/                 one file per group in ../contract/conformance.json
-        └── Fakes/                       FakeTransport, FakeStorage
+    ├── LocalazeTests/
+    │   ├── Conformance/                 one file per group in ../contract/conformance.json
+    │   └── Fakes/                       FakeTransport, FakeStorage
+    ├── LocalazeGeneratorTests/          the generator group, and the command as a process
+    └── LocalazeGoldenTests/             Localaze.g.swift, the golden, compiled and rendered
 ```
 
 `public` is a deliberate act. Default to internal and widen only when something outside needs it.
@@ -78,6 +83,15 @@ Unlike Dart, Swift can find a writable directory without pulling in a dependency
 `LZ-56` names the tempting alternative and rejects it: generating into `.stringsdict` and leaning on Foundation's plural handling.
 
 It is worse. Foundation's plural rules are its own, and the `LZ-54` guarantee is that all three platforms behave identically. Explicit generated Swift control flow is what makes that true. The same reasoning is why dates render ISO-8601 rather than through `DateFormatter` — see contract §3.
+
+## The generator
+
+`swift run localaze-generate`, specified in `../contract/generator-contract.md`.
+
+- `LocalazeGenerator` is a target, not a product: nothing outside links it. It takes the manifest and catalogs as strings and returns a plan or every problem.
+- `localaze-generate` is the only generator code that touches `URLSession` or `FileManager`. It is an executable product, so an app's build machine can run it from the dependency.
+- File-private helpers in generated code start with an underscore. No accessor can, so a key named `plural` cannot shadow them.
+- The golden file is `Tests/LocalazeGoldenTests/Localaze.g.swift`, compiled as part of a test target so a change that stops it compiling fails the suite. When output changes on purpose, run `UPDATE_GOLDEN=1 swift test --filter GeneratorTests/testGolden` and review the diff.
 
 ## UIKit and SwiftUI
 
