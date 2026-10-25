@@ -63,6 +63,10 @@ jobs:
         working-directory: localaze-swift
         run: xcodebuild -scheme Localaze -destination 'generic/platform=iOS' -quiet build
 
-      - name: SwiftUI example
+      - name: The README's examples
+        working-directory: localaze-swift
+        run: python3 contract/scripts/check-snippets.py README.md
+
+      - name: SwiftUI example, and the README's examples run
         working-directory: localaze-swift/examples/swiftui-app
         run: swift test
