@@ -1,0 +1,44 @@
+# A version tag is the Swift release: SwiftPM resolves the package from this
+# repository by tag, and the Swift Package Index picks the tag up itself. This
+# job checks the tag deserves to be one, and writes the GitHub release.
+name: Release
+
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: GitHub release
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          path: localaze-swift
+
+      - name: The tag is on main, and the changelog has its entry
+        working-directory: localaze-swift
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$GITHUB_REF_NAME is not on main"; exit 1; }
+          python3 contract/scripts/changelog-entry.py "$GITHUB_REF_NAME" CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+
+      # A tag is never moved or deleted once pushed: SwiftPM caches what it
+      # pointed to. So a tag whose suite fails is not undone here; it is
+      # followed by a fixed version, and the failure is in this run.
+      - name: Test
+        working-directory: localaze-swift
+        run: |
+          swift test
+          xcodebuild -scheme Localaze -destination 'generic/platform=iOS' -quiet build
+
+      - name: GitHub release
+        working-directory: localaze-swift
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag

@@ -63,6 +63,14 @@ jobs:
         working-directory: localaze-swift
         run: xcodebuild -scheme Localaze -destination 'generic/platform=iOS' -quiet build
 
+      # The documentation the Swift Package Index hosts. A symbol link that no
+      # longer resolves is a warning in DocC, and an error here.
+      - name: DocC
+        working-directory: localaze-swift
+        run: |
+          xcodebuild docbuild -scheme Localaze -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/docc" OTHER_DOCC_FLAGS=--warnings-as-errors -quiet
+
       - name: The README's examples
         working-directory: localaze-swift
         run: python3 contract/scripts/check-snippets.py README.md

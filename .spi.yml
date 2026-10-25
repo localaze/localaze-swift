@@ -1,0 +1,9 @@
+# Swift Package Index: which products get hosted DocC documentation, and which
+# platforms its build matrix should check. It builds every listed platform and
+# shows the result, so this claims only what the README claims.
+version: 1
+builder:
+  configs:
+    - documentation_targets: [Localaze]
+      platform: ios
+    - platform: macos-spm

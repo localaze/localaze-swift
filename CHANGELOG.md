@@ -2,9 +2,9 @@
 
 Versions follow `contract/RELEASING.md`: the Dart, Swift and Kotlin packages release together, at the same version.
 
-## 0.1.0 — unreleased
+## Unreleased
 
-First release.
+First public release. The first version is 0.2.0 on every platform, because `localaze` on pub.dev already has an unrelated 0.1.0.
 
 - `Localaze`: the runtime. Fetches, caches and applies catalogs under an update policy and a names-and-types signature check, renders messages, and never throws. `LocalazeNumber` is what a generated `NUMBER` parameter accepts.
 - `localaze-generate`: typed accessors and catalogs from a published release, per `contract/generator-contract.md`. The generated file is checked in.
