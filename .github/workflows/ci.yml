@@ -1,0 +1,66 @@
+# Every pull request and every push to main runs the whole suite against the
+# contract pinned at contract/. localaze-contract also calls this workflow with
+# a proposed contract commit, so a contract change shows what it would break
+# here before it merges.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      contract-ref:
+        description: A localaze-contract commit to test against instead of the pinned one
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.repository }}-${{ github.ref }}-${{ inputs.contract-ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift:
+    name: Swift
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      # Named explicitly: when another repository calls this workflow, a bare
+      # checkout would fetch the caller.
+      - uses: actions/checkout@v4
+        with:
+          repository: localaze/localaze-swift
+          ref: ${{ inputs.contract-ref && 'main' || '' }}
+          submodules: recursive
+          # SwiftPM names a path dependency after its folder, and the example
+          # depends on the package at ../.. by the name localaze-swift.
+          path: localaze-swift
+
+      - name: Use the proposed contract
+        if: inputs.contract-ref
+        working-directory: localaze-swift
+        run: |
+          git -C contract fetch --depth 1 origin "${{ inputs.contract-ref }}"
+          git -C contract checkout --quiet FETCH_HEAD
+          echo "Testing against contract $(git -C contract rev-parse --short HEAD)"
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Runtime, generator and golden files
+        working-directory: localaze-swift
+        run: swift test
+
+      # macOS is a build host here, not a target. Building for iOS catches an
+      # API that exists only on macOS before an app does.
+      - name: Builds for iOS
+        working-directory: localaze-swift
+        run: xcodebuild -scheme Localaze -destination 'generic/platform=iOS' -quiet build
+
+      - name: SwiftUI example
+        working-directory: localaze-swift/examples/swiftui-app
+        run: swift test
