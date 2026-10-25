@@ -1,8 +1,8 @@
 # localaze-swift
 
-The Swift/iOS runtime package, and its generator. `LZ-56`.
+The Swift/iOS runtime package, and its generator.
 
-Read `../CLAUDE.md` for the rules that govern every SDK package, and `../contract/runtime-contract.md` for the behaviour this one implements. This file records only what is specific to Swift.
+Read `contract/CLAUDE.md` for the rules that govern every SDK package, and `contract/runtime-contract.md` for the behaviour this one implements. This file records only what is specific to Swift.
 
 ## Baselines
 
@@ -15,16 +15,16 @@ Read `../CLAUDE.md` for the rules that govern every SDK package, and `../contrac
 | macOS | 13 | So `swift test` runs on a build machine rather than a simulator. Not a shipping target |
 | watchOS / tvOS | Out of scope | |
 | Dependencies | **None** | |
-| Distribution | Local path dependency. SPM from the internal source is a later ticket | |
+| Distribution | SwiftPM, from this repository by tag | `Package.swift` must sit at a repository's root to be added by URL, which is why this is a repository of its own |
 
-`LZ-56` asked for a choice between an SPM build plugin and a checked-in generated file. **It is a checked-in file**, written by the `localaze-generate` command. A build plugin cannot reach the network without a permission prompt on every build, and a build that fetches is not reproducible. iOS 16 did not bear on the choice.
+The choice was between an SPM build plugin and a checked-in generated file. **It is a checked-in file**, written by the `localaze-generate` command. A build plugin cannot reach the network without a permission prompt on every build, and a build that fetches is not reproducible. iOS 16 did not bear on the choice.
 
 ### Foundation is kept at arm's length
 
-Three places where the obvious Foundation answer is the wrong one, all for the same reason — `LZ-54` guarantees the three platforms render identically, and Foundation's rules are its own:
+Three places where the obvious Foundation answer is the wrong one, all for the same reason — the SDKs promise the three platforms render identically, and Foundation's rules are its own:
 
 - **Dates** use a hand-built formatter, not `ISO8601DateFormatter`, whose output depends on option flags a future Foundation could change.
-- **Plurals** compile into generated Swift. No `.stringsdict`, which `LZ-56` rejects explicitly.
+- **Plurals** compile into generated Swift. No `.stringsdict`.
 - **No `NSLocalizedString`** anywhere.
 
 A purity test enforces all three.
@@ -33,6 +33,8 @@ A purity test enforces all three.
 
 ```
 localaze-swift/
+├── contract/                            the contract, a submodule
+├── examples/swiftui-app/                the SwiftUI demo
 ├── CLAUDE.md
 ├── README.md
 ├── Package.swift
@@ -55,7 +57,7 @@ localaze-swift/
 │       └── Platform/                    default implementations, the only place URLSession appears in the runtime
 └── Tests/
     ├── LocalazeTests/
-    │   ├── Conformance/                 one file per group in ../contract/conformance.json
+    │   ├── Conformance/                 one file per group in contract/conformance.json
     │   └── Fakes/                       FakeTransport, FakeStorage
     ├── LocalazeGeneratorTests/          the generator group, and the command as a process
     └── LocalazeGoldenTests/             Localaze.g.swift, the golden, compiled and rendered
@@ -80,13 +82,13 @@ Unlike Dart, Swift can find a writable directory without pulling in a dependency
 
 ## Generation: no `.stringsdict`
 
-`LZ-56` names the tempting alternative and rejects it: generating into `.stringsdict` and leaning on Foundation's plural handling.
+The tempting alternative is rejected: generating into `.stringsdict` and leaning on Foundation's plural handling.
 
-It is worse. Foundation's plural rules are its own, and the `LZ-54` guarantee is that all three platforms behave identically. Explicit generated Swift control flow is what makes that true. The same reasoning is why dates render ISO-8601 rather than through `DateFormatter` — see contract §3.
+It is worse. Foundation's plural rules are its own, and the cross-platform guarantee is that all three platforms behave identically. Explicit generated Swift control flow is what makes that true. The same reasoning is why dates render ISO-8601 rather than through `DateFormatter` — see contract §3.
 
 ## The generator
 
-`swift run localaze-generate`, specified in `../contract/generator-contract.md`.
+`swift run localaze-generate`, specified in `contract/generator-contract.md`.
 
 - `LocalazeGenerator` is a target, not a product: nothing outside links it. It takes the manifest and catalogs as strings and returns a plan or every problem.
 - `localaze-generate` is the only generator code that touches `URLSession` or `FileManager`. It is an executable product, so an app's build machine can run it from the dependency.
@@ -95,13 +97,13 @@ It is worse. Foundation's plural rules are its own, and the `LZ-54` guarantee is
 
 ## UIKit and SwiftUI
 
-`LZ-56` requires the output to work from both, and to read naturally at the call site. Locale switching at runtime is required.
+The output works from both, and to read naturally at the call site. Locale switching at runtime is required.
 
 Keep any SwiftUI-specific surface — an `EnvironmentKey`, an `ObservableObject` — in its own file, and keep the core free of SwiftUI so a UIKit-only app carries none of it.
 
 ## Never do
 
-Everything in `../CLAUDE.md`, plus:
+Everything in `contract/CLAUDE.md`, plus:
 
 - Never touch `URLSession` or `FileManager` outside `Sources/Localaze/Platform/`
 - Never generate `.stringsdict` or rely on Foundation's plural rules
