@@ -16,7 +16,7 @@ let baseUrl = ProcessInfo.processInfo.environment["LOCALAZE_BASE_URL"]
 /// The stub server's key. A real one carries the project and the environment.
 let apiKey = "demo-key"
 
-/// Mirrors the scenarios in `../../stub-server/serve.dart`.
+/// Mirrors the scenarios in `../../contract/stub-server/serve.dart`.
 enum Scenario: String, CaseIterable, Identifiable {
     case base, patch, minor, retyped, major, malformed, down
 

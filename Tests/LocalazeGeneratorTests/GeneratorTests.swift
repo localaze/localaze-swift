@@ -10,9 +10,9 @@ import XCTest
 let packageRoot = URL(fileURLWithPath: #filePath)
     .deletingLastPathComponent()  // LocalazeGeneratorTests
     .deletingLastPathComponent()  // Tests
-    .deletingLastPathComponent()  // localaze-swift
+    .deletingLastPathComponent()  // the package root
 
-let fixtures = packageRoot.deletingLastPathComponent().appendingPathComponent("contract/fixtures")
+let fixtures = packageRoot.appendingPathComponent("contract/fixtures")
 let goldenPath = packageRoot.appendingPathComponent("Tests/LocalazeGoldenTests/Localaze.g.swift")
 
 func fixture(_ path: String) -> String {

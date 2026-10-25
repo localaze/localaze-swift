@@ -5,7 +5,7 @@
 /// makes this package possible without a Swift MF2 library — there is no
 /// maintained one, and decision D7 turns on that.
 ///
-/// See `../../contract/runtime-contract.md` section 2.
+/// See `contract/runtime-contract.md` section 2.
 
 import Foundation
 

@@ -7,7 +7,7 @@ A SwiftUI demo over `localaze-swift`, exercising every feature.
 Start the stub server first:
 
 ```
-cd ../stub-server && dart run serve.dart
+cd ../../contract/stub-server && dart run serve.dart
 ```
 
 Then, on macOS:
@@ -51,7 +51,7 @@ It is the real output of the Swift generator for the fixture release. `localaze/
 Regenerate from the stub server, exactly as an app would from production:
 
 ```
-swift run --package-path ../../localaze-swift localaze-generate \
+swift run --package-path ../.. localaze-generate \
     --key demo-key --version 1.0.0 --base-url http://localhost:8787 \
     --out Sources/LocalazeDemo/Localaze.g.swift --assets localaze
 ```

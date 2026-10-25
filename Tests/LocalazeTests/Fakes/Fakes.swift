@@ -81,7 +81,7 @@ final class Reported: @unchecked Sendable {
 
 // MARK: - The shared fixture project
 
-/// Loads a file from `../contract/fixtures`.
+/// Loads a file from `contract/fixtures`, the contract submodule.
 ///
 /// Reached through `#filePath` rather than copied in as an SPM resource: SPM
 /// resources must live inside the target, which would mean a Swift-only copy of
@@ -92,8 +92,7 @@ func fixture(_ path: String) -> String {
         .deletingLastPathComponent()   // Fakes/
         .deletingLastPathComponent()   // LocalazeTests/
         .deletingLastPathComponent()   // Tests/
-        .deletingLastPathComponent()   // localaze-swift/
-        .deletingLastPathComponent()   // sdks/
+        .deletingLastPathComponent()   // the package root
         .appendingPathComponent("contract/fixtures")
         .appendingPathComponent(path)
 

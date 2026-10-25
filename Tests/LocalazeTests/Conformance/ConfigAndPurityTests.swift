@@ -101,7 +101,7 @@ final class PurityTests: XCTestCase {
             .deletingLastPathComponent()  // Conformance/
             .deletingLastPathComponent()  // LocalazeTests/
             .deletingLastPathComponent()  // Tests/
-            .deletingLastPathComponent()  // localaze-swift/
+            .deletingLastPathComponent()  // the package root
             .appendingPathComponent("Sources/Localaze")
 
         var out: [String: String] = [:]

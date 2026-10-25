@@ -3,7 +3,7 @@
 /// The whole algorithm is: pick a variant, walk its parts, concatenate. If an
 /// implementation needs more than that, the payload is wrong.
 ///
-/// See `../../contract/runtime-contract.md` section 3.
+/// See `contract/runtime-contract.md` section 3.
 
 import Foundation
 

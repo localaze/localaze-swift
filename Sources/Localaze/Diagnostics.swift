@@ -5,7 +5,7 @@
 /// an integration that never worked can go unnoticed for a month. The callback
 /// is not optional polish, it is how anyone finds out.
 ///
-/// See `../../contract/runtime-contract.md` section 8.
+/// See `contract/runtime-contract.md` section 8.
 
 import Foundation
 

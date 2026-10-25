@@ -1,6 +1,6 @@
 /// Where content comes from, and in what order.
 ///
-/// See `../../contract/runtime-contract.md` section 7.
+/// See `contract/runtime-contract.md` section 7.
 
 import Foundation
 

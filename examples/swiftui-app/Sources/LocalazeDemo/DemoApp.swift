@@ -1,6 +1,6 @@
 /// A SwiftUI demo that exercises every feature of the Localaze Swift SDK.
 ///
-/// Point it at the stub server in `../stub-server` (`dart run serve.dart`),
+/// Point it at the stub server in `../../contract/stub-server` (`dart run serve.dart`),
 /// then use the Server section to put a patch, a major, or a retyped catalog on
 /// offer and watch the SDK accept or refuse it.
 ///

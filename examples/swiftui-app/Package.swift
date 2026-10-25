@@ -13,7 +13,9 @@ let package = Package(
     name: "LocalazeDemo",
     platforms: [.iOS(.v16), .macOS(.v13)],
     dependencies: [
-        .package(path: "../../localaze-swift")
+        // The SDK at the repository root. SwiftPM names a path dependency after
+        // its folder, which is `localaze-swift` in a clone of the repository.
+        .package(path: "../..")
     ],
     targets: [
         .executableTarget(

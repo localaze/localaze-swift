@@ -4,7 +4,7 @@
 /// in the contract is reachable with a fake and unreachable without one. A
 /// runtime testable only against a live server is a runtime that is not tested.
 ///
-/// See `../../contract/runtime-contract.md` section 10.
+/// See `contract/runtime-contract.md` section 10.
 
 import Foundation
 

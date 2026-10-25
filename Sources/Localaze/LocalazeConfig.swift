@@ -1,6 +1,6 @@
 /// Everything an app can change, all of it optional but the key.
 ///
-/// See `../../contract/runtime-contract.md` section 9.
+/// See `contract/runtime-contract.md` section 9.
 
 import Foundation
 

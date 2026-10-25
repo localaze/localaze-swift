@@ -5,7 +5,7 @@
 /// launch. They fail differently and are configured differently, so they are
 /// separate methods rather than one keyed store.
 ///
-/// See `../../contract/runtime-contract.md` sections 7 and 10.
+/// See `contract/runtime-contract.md` sections 7 and 10.
 
 import Foundation
 

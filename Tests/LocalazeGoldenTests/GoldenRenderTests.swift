@@ -8,13 +8,12 @@ import Foundation
 import Localaze
 import XCTest
 
-/// Loads a file from `../contract/fixtures`, reached through `#filePath`.
+/// Loads a file from `contract/fixtures`, reached through `#filePath`.
 private func fixture(_ path: String) -> String {
     let root = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent()  // LocalazeGoldenTests
         .deletingLastPathComponent()  // Tests
-        .deletingLastPathComponent()  // localaze-swift
-        .deletingLastPathComponent()  // sdks
+        .deletingLastPathComponent()  // the package root
     return try! String(contentsOf: root.appendingPathComponent("contract/fixtures/\(path)"), encoding: .utf8)
 }
 
