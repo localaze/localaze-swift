@@ -20,7 +20,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.repository }}-${{ github.ref }}-${{ inputs.contract-ref }}
+  # Named for this repository: in a call from localaze-contract, github.repository
+  # is the caller's, and the three SDKs would cancel one another.
+  group: ci-swift-${{ github.ref }}-${{ inputs.contract-ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,7 +33,7 @@ jobs:
     steps:
       # Named explicitly: when another repository calls this workflow, a bare
       # checkout would fetch the caller.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: localaze/localaze-swift
           ref: ${{ inputs.contract-ref && 'main' || '' }}
